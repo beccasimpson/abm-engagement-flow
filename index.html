@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABM Engagement Flow - Readiness Level Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        /* Main Tabs */
+        .main-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .main-tab {
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .main-tab:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .main-tab.active {
+            background: #fff;
+            color: #1E3A5F;
+            border-color: #fff;
+        }
+        .main-content {
+            display: none;
+        }
+        .main-content.active {
+            display: block;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            font-size: 0.85rem;
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+        .legend-dot.rl1 { background: #4CAF50; }
+        .legend-dot.rl2 { background: #FF9800; }
+        .legend-dot.rl3 { background: #f44336; }
+        .legend-dot.trigger { background: #9C27B0; }
+        .legend-dot.handoff { background: #2196F3; }
+
+        /* Entry Section */
+        .entry-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .entry-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1E3A5F;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .entry-title::before {
+            content: "⚡";
+        }
+        .entry-title.no-icon::before {
+            content: "";
+        }
+        .trigger-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .trigger-card {
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid;
+        }
+        .trigger-card.rl1 {
+            background: #E8F5E9;
+            border-color: #4CAF50;
+        }
+        .trigger-card.rl2 {
+            background: #FFF3E0;
+            border-color: #FF9800;
+        }
+        .trigger-card.rl3 {
+            background: #FFEBEE;
+            border-color: #f44336;
+        }
+        .trigger-card.mql {
+            background: #E3F2FD;
+            border-color: #2196F3;
+        }
+        .trigger-card h4 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        .trigger-card ul {
+            font-size: 0.8rem;
+            margin-left: 15px;
+            color: #555;
+        }
+        .trigger-card li {
+            margin-bottom: 4px;
+        }
+
+        /* Main Flow Section */
+        .flow-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .flow-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1E3A5F;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* RL Tabs */
+        .rl-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .rl-tab {
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .rl-tab.rl1 { background: #E8F5E9; color: #2E7D32; }
+        .rl-tab.rl2 { background: #FFF3E0; color: #E65100; }
+        .rl-tab.rl3 { background: #FFEBEE; color: #C62828; }
+        .rl-tab.active { transform: scale(1.05); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .rl-tab.rl1.active { border-color: #4CAF50; }
+        .rl-tab.rl2.active { border-color: #FF9800; }
+        .rl-tab.rl3.active { border-color: #f44336; }
+
+        /* Flow Content */
+        .flow-content {
+            display: none;
+        }
+        .flow-content.active {
+            display: block;
+        }
+
+        /* Segment Grid */
+        .segment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .segment-column {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .segment-header {
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            color: #fff;
+        }
+        .segment-header.ent { background: #1E3A5F; }
+        .segment-header.mm { background: #0097A7; }
+        .segment-header.smb { background: #7B1FA2; }
+
+        .segment-body {
+            background: #f8f9fa;
+            padding: 15px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ddd;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 15px;
+            padding-left: 15px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -14px;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #9C27B0;
+        }
+        .timeline-item.handoff::before {
+            background: #2196F3;
+            width: 12px;
+            height: 12px;
+            left: -15px;
+        }
+        .timeline-item.exec::before {
+            background: #FF5722;
+        }
+        .timeline-item.mql::before {
+            background: #00BCD4;
+        }
+        .timeline-time {
+            font-size: 0.7rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .timeline-action {
+            font-size: 0.8rem;
+            color: #333;
+            margin-top: 2px;
+        }
+        .timeline-action strong {
+            color: #1E3A5F;
+        }
+        .timeline-detail {
+            font-size: 0.7rem;
+            color: #888;
+            font-style: italic;
+            margin-top: 2px;
+        }
+        .mql-badge {
+            display: inline-block;
+            background: #00BCD4;
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+
+        /* Handoff Box */
+        .handoff-box {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border: 2px dashed #2196F3;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .handoff-box h5 {
+            color: #1565C0;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        .handoff-box p {
+            font-size: 0.75rem;
+            color: #1976D2;
+        }
+
+        /* Persona Note */
+        .persona-note {
+            background: #FFF8E1;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.75rem;
+        }
+        .persona-note strong {
+            color: #F57C00;
+        }
+
+        /* Transition Rules */
+        .transition-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .transition-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .transition-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid #9C27B0;
+        }
+        .transition-card h4 {
+            font-size: 0.9rem;
+            color: #1E3A5F;
+            margin-bottom: 10px;
+        }
+        .transition-card .arrow {
+            color: #9C27B0;
+            font-weight: bold;
+        }
+        .transition-card ul {
+            font-size: 0.8rem;
+            margin-left: 15px;
+            color: #555;
+        }
+
+        /* SLA Table */
+        .sla-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .sla-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .sla-table th {
+            background: #1E3A5F;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+        }
+        .sla-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .sla-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .sla-table .highlight {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        /* BDR Section Styles */
+        .bdr-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .bdr-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .bdr-header h2 {
+            color: #1E3A5F;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        .bdr-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .cadence-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .cadence-card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .cadence-header {
+            padding: 15px;
+            color: #fff;
+            text-align: center;
+        }
+        .cadence-header.ent { background: linear-gradient(135deg, #1E3A5F, #2E5077); }
+        .cadence-header.mm { background: linear-gradient(135deg, #0097A7, #00ACC1); }
+        .cadence-header.smb { background: linear-gradient(135deg, #7B1FA2, #9C27B0); }
+        .cadence-header h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        .cadence-header .sla-time {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .cadence-body {
+            background: #fff;
+            padding: 20px;
+        }
+        .cadence-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+        .cadence-row:last-child {
+            border-bottom: none;
+        }
+        .cadence-row .label {
+            color: #666;
+        }
+        .cadence-row .value {
+            font-weight: 600;
+            color: #1E3A5F;
+        }
+        .touch-sequence {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .touch-sequence h4 {
+            font-size: 0.85rem;
+            color: #1E3A5F;
+            margin-bottom: 10px;
+        }
+        .touch-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 0.8rem;
+        }
+        .touch-day {
+            background: #1E3A5F;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+        .touch-action {
+            color: #333;
+        }
+        .escalation-box {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            border: 2px solid #EF5350;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .escalation-box h4 {
+            color: #C62828;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .escalation-box ul {
+            font-size: 0.8rem;
+            margin-left: 15px;
+            color: #555;
+        }
+
+        /* MQL Section */
+        .mql-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .mql-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .mql-header h2 {
+            color: #1E3A5F;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        .mql-threshold {
+            display: inline-block;
+            background: linear-gradient(135deg, #00BCD4, #0097A7);
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 700;
+            padding: 15px 40px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .mql-threshold span {
+            font-size: 1rem;
+            font-weight: 400;
+        }
+        .scoring-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .scoring-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #00BCD4;
+        }
+        .scoring-card h4 {
+            color: #1E3A5F;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+        .score-item:last-child {
+            border-bottom: none;
+        }
+        .score-points {
+            font-weight: 700;
+            color: #00BCD4;
+        }
+        .program-note {
+            background: #E0F7FA;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.85rem;
+        }
+        .program-note strong {
+            color: #00838F;
+        }
+
+        @media (max-width: 900px) {
+            .trigger-grid, .segment-grid, .transition-grid, .cadence-grid, .scoring-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ABM Engagement Flow</h1>
+        <p class="subtitle">Readiness Level → Segment → Persona | Trigger Points & Handoffs</p>
+
+        <!-- Main Navigation Tabs -->
+        <div class="main-tabs">
+            <div class="main-tab active" onclick="showMainTab('flow')">Engagement Flow</div>
+            <div class="main-tab" onclick="showMainTab('bdr')">BDR Cadences & SLAs</div>
+            <div class="main-tab" onclick="showMainTab('mql')">MQL Scoring</div>
+        </div>
+
+        <!-- ============ FLOW TAB ============ -->
+        <div id="main-flow" class="main-content active">
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot rl1"></div> RL1 (Sales Ready)</div>
+                <div class="legend-item"><div class="legend-dot rl2"></div> RL2 (Aware)</div>
+                <div class="legend-item"><div class="legend-dot rl3"></div> RL3 (Unaware)</div>
+                <div class="legend-item"><div class="legend-dot trigger"></div> Trigger Point</div>
+                <div class="legend-item"><div class="legend-dot handoff"></div> Sales Handoff</div>
+            </div>
+
+            <!-- Entry Triggers -->
+            <div class="entry-section">
+                <div class="entry-title">ENTRY TRIGGERS (Automated Scoring)</div>
+                <div class="trigger-grid">
+                    <div class="trigger-card rl1">
+                        <h4>→ RL1 (Sales Ready)</h4>
+                        <ul>
+                            <li>Demo request submitted</li>
+                            <li>Pricing page visit (2+ times)</li>
+                            <li>Responded to Sales email</li>
+                            <li>Renewal ≤6mo (SMB) / ≤12mo (MM) / ≤18mo (ENT)</li>
+                            <li>Hand-raiser form fill</li>
+                            <li><strong>MQL threshold reached (50+ pts)</strong></li>
+                        </ul>
+                    </div>
+                    <div class="trigger-card rl2">
+                        <h4>→ RL2 (Aware)</h4>
+                        <ul>
+                            <li>Visited Gladly.com (last 90 days)</li>
+                            <li>Clicked ad or engaged email</li>
+                            <li>Downloaded content asset</li>
+                            <li>Searched "Gladly" (G2, Google)</li>
+                            <li>Webinar registration</li>
+                        </ul>
+                    </div>
+                    <div class="trigger-card rl3">
+                        <h4>→ RL3 (Unaware)</h4>
+                        <ul>
+                            <li>No engagement in 90+ days</li>
+                            <li>Net-new target account</li>
+                            <li>Cold import from list</li>
+                            <li>Lapsed account (was engaged, now dormant)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Flow -->
+            <div class="flow-section">
+                <div class="flow-title">ENGAGEMENT FLOW BY READINESS LEVEL & SEGMENT</div>
+
+                <div class="rl-tabs">
+                    <div class="rl-tab rl1 active" onclick="showFlow('rl1')">RL1: Sales Ready</div>
+                    <div class="rl-tab rl2" onclick="showFlow('rl2')">RL2: Aware</div>
+                    <div class="rl-tab rl3" onclick="showFlow('rl3')">RL3: Unaware</div>
+                </div>
+
+                <!-- RL1 Flow -->
+                <div id="flow-rl1" class="flow-content active">
+                    <div class="segment-grid">
+                        <!-- Enterprise -->
+                        <div class="segment-column">
+                            <div class="segment-header ent">ENTERPRISE</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Immediate (Day 0)</div>
+                                        <div class="timeline-action"><strong>Email #1:</strong> Personalized intro</div>
+                                        <div class="timeline-detail">Persona-specific value prop</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>ABM Ads:</strong> Demo CTA launched</div>
+                                        <div class="timeline-detail">1:1 account targeting</div>
+                                    </div>
+                                    <div class="timeline-item handoff">
+                                        <div class="timeline-time">Within 4 hours</div>
+                                        <div class="timeline-action"><strong>🔔 SALES HANDOFF:</strong> AE assigned</div>
+                                        <div class="timeline-detail">SLA: First touch same day</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 2</div>
+                                        <div class="timeline-action"><strong>BDR Outreach:</strong> Phone + LinkedIn</div>
+                                        <div class="timeline-detail">Multi-thread: 2-3 contacts</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 3</div>
+                                        <div class="timeline-action"><strong>Email #2:</strong> Case study</div>
+                                        <div class="timeline-detail">Industry-specific proof point</div>
+                                    </div>
+                                    <div class="timeline-item exec">
+                                        <div class="timeline-time">Day 5 (if no response)</div>
+                                        <div class="timeline-action"><strong>🎯 EXEC EMAIL:</strong> CEO/VP outreach</div>
+                                        <div class="timeline-detail">To: Exec Sponsor / CDO personas only</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 7</div>
+                                        <div class="timeline-action"><strong>Direct Gift:</strong> Auto-triggered</div>
+                                        <div class="timeline-detail">$75-150 value, personalized</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 10</div>
+                                        <div class="timeline-action"><strong>Email #3:</strong> ROI/TCO content</div>
+                                        <div class="timeline-detail">Persona: IT = TCO, CDO = Revenue</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 14+</div>
+                                        <div class="timeline-action"><strong>Exec Event Invite</strong></div>
+                                        <div class="timeline-detail">Dinner or exclusive roundtable</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>🤝 HANDOFF TO SALES</h5>
+                                    <p>AE owns relationship after Day 2<br>Marketing supports with air cover</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Messaging:</strong><br>
+                                    • Exec/CDO: Revenue, strategic transformation<br>
+                                    • IT/CTO: TCO, architecture, security<br>
+                                    • CX Leader: CSAT, personalization
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mid-Market -->
+                        <div class="segment-column">
+                            <div class="segment-header mm">MID-MARKET</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Immediate (Day 0)</div>
+                                        <div class="timeline-action"><strong>Email #1:</strong> Personalized intro</div>
+                                        <div class="timeline-detail">Persona-specific pain point</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>ABM Ads:</strong> Demo CTA + retargeting</div>
+                                        <div class="timeline-detail">Account list targeting</div>
+                                    </div>
+                                    <div class="timeline-item handoff">
+                                        <div class="timeline-time">Within 24 hours</div>
+                                        <div class="timeline-action"><strong>🔔 SALES HANDOFF:</strong> BDR assigned</div>
+                                        <div class="timeline-detail">SLA: First touch within 24hrs</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 1-2</div>
+                                        <div class="timeline-action"><strong>BDR Outreach:</strong> Email + call</div>
+                                        <div class="timeline-detail">3-touch sequence starts</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 3</div>
+                                        <div class="timeline-action"><strong>Email #2:</strong> Social proof</div>
+                                        <div class="timeline-detail">Similar company case study</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 5</div>
+                                        <div class="timeline-action"><strong>Email #3:</strong> Value prop deep-dive</div>
+                                        <div class="timeline-detail">Persona-specific content</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 7</div>
+                                        <div class="timeline-action"><strong>Webinar Invite</strong></div>
+                                        <div class="timeline-detail">Next scheduled topic-relevant webinar</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 10 (if engaged)</div>
+                                        <div class="timeline-action"><strong>Light Gift:</strong> Auto-triggered</div>
+                                        <div class="timeline-detail">$25-50 value (engaged contacts only)</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>🤝 HANDOFF TO SALES</h5>
+                                    <p>BDR owns first 2 weeks<br>AE joins after meeting booked</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Messaging:</strong><br>
+                                    • CX/CC Leader: Efficiency, consolidation<br>
+                                    • Operations: Cost to serve, ROI<br>
+                                    • IT: Fast deployment, integration
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMB -->
+                        <div class="segment-column">
+                            <div class="segment-header smb">SMB</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Immediate (Day 0)</div>
+                                        <div class="timeline-action"><strong>Email #1:</strong> Quick value prop</div>
+                                        <div class="timeline-detail">Pain → solution → CTA</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Ads:</strong> Google/LinkedIn demo CTA</div>
+                                        <div class="timeline-detail">Segment targeting (not 1:1)</div>
+                                    </div>
+                                    <div class="timeline-item handoff">
+                                        <div class="timeline-time">Within 24 hours</div>
+                                        <div class="timeline-action"><strong>🔔 SALES HANDOFF:</strong> BDR queue</div>
+                                        <div class="timeline-detail">SLA: Contact within 24hrs</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 1</div>
+                                        <div class="timeline-action"><strong>BDR Outreach:</strong> Email + call</div>
+                                        <div class="timeline-detail">Fast-track sequence</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 2</div>
+                                        <div class="timeline-action"><strong>Email #2:</strong> Quick case study</div>
+                                        <div class="timeline-detail">SMB-specific proof point</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 4</div>
+                                        <div class="timeline-action"><strong>Email #3:</strong> Offer/urgency</div>
+                                        <div class="timeline-detail">Demo booking CTA</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 7</div>
+                                        <div class="timeline-action"><strong>Final push:</strong> Last chance</div>
+                                        <div class="timeline-detail">If no response → move to RL2 nurture</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>🤝 HANDOFF TO SALES</h5>
+                                    <p>BDR handles full cycle<br>Fast path to demo booking</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Messaging:</strong><br>
+                                    • CX Leader: Easy setup, fast results<br>
+                                    • Operations: All-in-one, cost savings<br>
+                                    • No exec outreach (owner-operators)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RL2 Flow -->
+                <div id="flow-rl2" class="flow-content">
+                    <div class="segment-grid">
+                        <!-- Enterprise -->
+                        <div class="segment-column">
+                            <div class="segment-header ent">ENTERPRISE</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Nurture Start:</strong> Educational email</div>
+                                        <div class="timeline-detail">Thought leadership content</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Retargeting Ads:</strong> Content offers</div>
+                                        <div class="timeline-detail">Case studies, guides</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 7</div>
+                                        <div class="timeline-action"><strong>Email #2:</strong> Industry report <span class="mql-badge">+10 pts</span></div>
+                                        <div class="timeline-detail">Persona-relevant content</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 14</div>
+                                        <div class="timeline-action"><strong>Webinar Invite</strong> <span class="mql-badge">+15 pts attend</span></div>
+                                        <div class="timeline-detail">Executive roundtable or panel</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 14</div>
+                                        <div class="timeline-action"><strong>BDR Research:</strong> Account mapping</div>
+                                        <div class="timeline-detail">Identify champions, multi-thread</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 21</div>
+                                        <div class="timeline-action"><strong>Email #3:</strong> Case study <span class="mql-badge">+10 pts</span></div>
+                                        <div class="timeline-detail">Similar industry proof</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 30</div>
+                                        <div class="timeline-action"><strong>Content Syndication</strong></div>
+                                        <div class="timeline-detail">Gated asset promotion</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Ongoing</div>
+                                        <div class="timeline-action"><strong>2x/week touchpoints</strong></div>
+                                        <div class="timeline-detail">Until RL1 trigger or 90 days</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>⚡ UPGRADE TRIGGER → RL1</h5>
+                                    <p>Demo request, pricing visit, MQL (50+ pts), or sales response<br>Immediately moves to RL1 flow</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Nurture Tracks:</strong><br>
+                                    • Exec/CDO: Strategic transformation, AI trends<br>
+                                    • IT/CTO: Architecture, integration, TCO<br>
+                                    • CX Leader: Customer stories, best practices
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mid-Market -->
+                        <div class="segment-column">
+                            <div class="segment-header mm">MID-MARKET</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Nurture Start:</strong> Welcome + value</div>
+                                        <div class="timeline-detail">Pain point acknowledgment</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Retargeting Ads:</strong> Launch</div>
+                                        <div class="timeline-detail">Content downloads, webinar</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 5</div>
+                                        <div class="timeline-action"><strong>Email #2:</strong> Educational <span class="mql-badge">+10 pts</span></div>
+                                        <div class="timeline-detail">Guide or checklist</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 10</div>
+                                        <div class="timeline-action"><strong>Webinar Invite</strong> <span class="mql-badge">+15 pts attend</span></div>
+                                        <div class="timeline-detail">Educational webinar</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 14</div>
+                                        <div class="timeline-action"><strong>Email #3:</strong> Social proof <span class="mql-badge">+10 pts</span></div>
+                                        <div class="timeline-detail">Customer testimonial</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 21</div>
+                                        <div class="timeline-action"><strong>BDR Touch:</strong> Soft outreach</div>
+                                        <div class="timeline-detail">If 3+ content engagements</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Ongoing</div>
+                                        <div class="timeline-action"><strong>2-3x/week nurture</strong></div>
+                                        <div class="timeline-detail">Until RL1 trigger or 60 days</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>⚡ UPGRADE TRIGGER → RL1</h5>
+                                    <p>Demo request, MQL (50+ pts), or high engagement<br>Immediately moves to RL1 flow</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Nurture Tracks:</strong><br>
+                                    • CX/CC Leader: Efficiency tips, case studies<br>
+                                    • Operations: ROI frameworks, cost guides<br>
+                                    • IT: Quick-start guides, integration
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMB -->
+                        <div class="segment-column">
+                            <div class="segment-header smb">SMB</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Automated Nurture:</strong> Start</div>
+                                        <div class="timeline-detail">Quick-hit educational content</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Retargeting Ads:</strong> Launch</div>
+                                        <div class="timeline-detail">Segment-level targeting</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 3</div>
+                                        <div class="timeline-action"><strong>Email #2:</strong> Quick tip <span class="mql-badge">+5 pts</span></div>
+                                        <div class="timeline-detail">Bite-sized value</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 7</div>
+                                        <div class="timeline-action"><strong>Email #3:</strong> Case study <span class="mql-badge">+10 pts</span></div>
+                                        <div class="timeline-detail">SMB success story</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 14</div>
+                                        <div class="timeline-action"><strong>Webinar Invite</strong> <span class="mql-badge">+15 pts attend</span></div>
+                                        <div class="timeline-detail">On-demand demo option</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Ongoing</div>
+                                        <div class="timeline-action"><strong>2x/week nurture</strong></div>
+                                        <div class="timeline-detail">Until RL1 trigger or 45 days</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>⚡ UPGRADE TRIGGER → RL1</h5>
+                                    <p>Demo request, MQL (50+ pts), or pricing visit<br>Immediately moves to RL1 flow</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Nurture Tracks:</strong><br>
+                                    • CX Leader: Quick wins, easy setup<br>
+                                    • Operations: All-in-one benefits<br>
+                                    • Simplified messaging for SMB
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RL3 Flow -->
+                <div id="flow-rl3" class="flow-content">
+                    <div class="segment-grid">
+                        <!-- Enterprise -->
+                        <div class="segment-column">
+                            <div class="segment-header ent">ENTERPRISE</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>LinkedIn Awareness Ads</strong></div>
+                                        <div class="timeline-detail">Thought leadership, brand</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Newsletter Add</strong></div>
+                                        <div class="timeline-detail">Monthly industry insights</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Monthly</div>
+                                        <div class="timeline-action"><strong>Email:</strong> Thought leadership <span class="mql-badge">+5 pts open</span></div>
+                                        <div class="timeline-detail">Industry trends, no hard sell</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Quarterly</div>
+                                        <div class="timeline-action"><strong>Industry Report</strong> <span class="mql-badge">+10 pts download</span></div>
+                                        <div class="timeline-detail">Benchmark or trends report</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Ongoing</div>
+                                        <div class="timeline-action"><strong>Brand Awareness Ads</strong></div>
+                                        <div class="timeline-detail">Stay visible, no CTA pressure</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>⚡ UPGRADE TRIGGER → RL2</h5>
+                                    <p>Any website visit, ad click, or email engagement<br>Moves to RL2 nurture flow</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Ad Targeting:</strong><br>
+                                    • Exec/CDO: Strategic AI, transformation<br>
+                                    • IT/CTO: Platform modernization<br>
+                                    • CX Leader: Industry benchmarks
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mid-Market -->
+                        <div class="segment-column">
+                            <div class="segment-header mm">MID-MARKET</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>LinkedIn/Display Ads</strong></div>
+                                        <div class="timeline-detail">Awareness campaigns</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Newsletter Add</strong></div>
+                                        <div class="timeline-detail">Monthly touchpoint</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Monthly</div>
+                                        <div class="timeline-action"><strong>Email:</strong> Educational <span class="mql-badge">+5 pts open</span></div>
+                                        <div class="timeline-detail">Industry content, tips</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Bi-monthly</div>
+                                        <div class="timeline-action"><strong>Webinar Promotion</strong></div>
+                                        <div class="timeline-detail">Educational topics</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Ongoing</div>
+                                        <div class="timeline-action"><strong>Content Syndication</strong></div>
+                                        <div class="timeline-detail">Lead gen at scale</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>⚡ UPGRADE TRIGGER → RL2</h5>
+                                    <p>Website visit, content download, or ad engagement<br>Moves to RL2 nurture flow</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Ad Targeting:</strong><br>
+                                    • CX/CC Leader: Efficiency trends<br>
+                                    • Operations: Cost optimization<br>
+                                    • IT: Tech stack trends
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMB -->
+                        <div class="segment-column">
+                            <div class="segment-header smb">SMB</div>
+                            <div class="segment-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Programmatic Ads</strong></div>
+                                        <div class="timeline-detail">Broad awareness</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Day 0</div>
+                                        <div class="timeline-action"><strong>Newsletter Add</strong></div>
+                                        <div class="timeline-detail">Monthly/quarterly</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Monthly</div>
+                                        <div class="timeline-action"><strong>Email:</strong> Light touch <span class="mql-badge">+5 pts open</span></div>
+                                        <div class="timeline-detail">Tips, trends, no pressure</div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">Ongoing</div>
+                                        <div class="timeline-action"><strong>Google Ads (search)</strong></div>
+                                        <div class="timeline-detail">Capture when ready</div>
+                                    </div>
+                                </div>
+                                <div class="handoff-box">
+                                    <h5>⚡ UPGRADE TRIGGER → RL2</h5>
+                                    <p>Any engagement signal<br>Moves to RL2 nurture flow</p>
+                                </div>
+                                <div class="persona-note">
+                                    <strong>Persona Ad Targeting:</strong><br>
+                                    • CX Leader: Quick tips, easy wins<br>
+                                    • Operations: Cost savings<br>
+                                    • Broad SMB messaging
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transition Rules -->
+            <div class="transition-section">
+                <div class="entry-title">AUTOMATIC TRANSITION TRIGGERS</div>
+                <div class="transition-grid">
+                    <div class="transition-card">
+                        <h4>RL3 <span class="arrow">→</span> RL2 (Aware)</h4>
+                        <ul>
+                            <li>Website visit (any page)</li>
+                            <li>Ad click or view-through</li>
+                            <li>Email open or click</li>
+                            <li>Content download</li>
+                            <li>Webinar registration</li>
+                            <li>G2/Gartner profile view</li>
+                        </ul>
+                    </div>
+                    <div class="transition-card">
+                        <h4>RL2 <span class="arrow">→</span> RL1 (Sales Ready)</h4>
+                        <ul>
+                            <li>Demo request form fill</li>
+                            <li>Pricing page visit (2+ times)</li>
+                            <li>Contact sales form</li>
+                            <li>Responded to sales email</li>
+                            <li><strong>MQL threshold reached (50+ points)</strong></li>
+                            <li>Renewal window opens</li>
+                        </ul>
+                    </div>
+                    <div class="transition-card">
+                        <h4>RL1 <span class="arrow">→</span> RL2 (Downgrade)</h4>
+                        <ul>
+                            <li>No response after 21 days (SMB)</li>
+                            <li>No response after 30 days (MM)</li>
+                            <li>No response after 45 days (ENT)</li>
+                            <li>Explicit "not now" response</li>
+                            <li>Lost/closed-lost deal (after cooling period)</li>
+                        </ul>
+                    </div>
+                    <div class="transition-card">
+                        <h4>RL2 <span class="arrow">→</span> RL3 (Downgrade)</h4>
+                        <ul>
+                            <li>No engagement for 90 days</li>
+                            <li>Email unsubscribe</li>
+                            <li>Hard bounce (invalid contact)</li>
+                            <li>Explicit opt-out</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLA Table -->
+            <div class="sla-section">
+                <div class="entry-title">SALES SLA & HANDOFF TIMING</div>
+                <table class="sla-table">
+                    <thead>
+                        <tr>
+                            <th>Segment</th>
+                            <th>RL1 First Touch SLA</th>
+                            <th>Sales Owner</th>
+                            <th>Exec Outreach Trigger</th>
+                            <th>Gifting Trigger</th>
+                            <th>Escalation Path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Enterprise</strong></td>
+                            <td class="highlight">Same day (4 hrs)</td>
+                            <td>AE direct</td>
+                            <td>Day 5 (no response)</td>
+                            <td>Day 7 (auto)</td>
+                            <td>VP Sales if no meeting by Day 14</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mid-Market</strong></td>
+                            <td class="highlight">Within 24 hours</td>
+                            <td>BDR → AE</td>
+                            <td>Day 10 (high-value only)</td>
+                            <td>Day 10 (if engaged)</td>
+                            <td>Sales Manager if no meeting by Day 21</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SMB</strong></td>
+                            <td class="highlight">Within 24 hours</td>
+                            <td>BDR (full cycle)</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>Move to RL2 nurture after 14 days</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============ BDR TAB ============ -->
+        <div id="main-bdr" class="main-content">
+            <div class="bdr-section">
+                <div class="bdr-header">
+                    <h2>BDR Cadences & SLAs</h2>
+                    <p>Outreach timing, sequences, and escalation paths by segment</p>
+                </div>
+
+                <div class="cadence-grid">
+                    <!-- Enterprise BDR -->
+                    <div class="cadence-card">
+                        <div class="cadence-header ent">
+                            <h3>ENTERPRISE</h3>
+                            <div class="sla-time">4-Hour SLA</div>
+                            <div style="font-size: 0.8rem; opacity: 0.9;">AE-led, BDR supports</div>
+                        </div>
+                        <div class="cadence-body">
+                            <div class="cadence-row">
+                                <span class="label">First Touch SLA</span>
+                                <span class="value">Same day (within 4 hrs)</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Primary Owner</span>
+                                <span class="value">AE (BDR supports)</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Sequence Length</span>
+                                <span class="value">45 days</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Total Touches</span>
+                                <span class="value">18-22 touches</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Multi-threading</span>
+                                <span class="value">3-5 contacts minimum</span>
+                            </div>
+
+                            <div class="touch-sequence">
+                                <h4>BDR Touch Sequence</h4>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 2</span>
+                                    <span class="touch-action">Phone call + voicemail</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 2</span>
+                                    <span class="touch-action">LinkedIn connection request</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 4</span>
+                                    <span class="touch-action">Personalized email (video optional)</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 6</span>
+                                    <span class="touch-action">Phone call #2</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 8</span>
+                                    <span class="touch-action">LinkedIn engage (comment/like)</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 10</span>
+                                    <span class="touch-action">Email #2 - Value add content</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 14</span>
+                                    <span class="touch-action">Phone call #3 + different contact</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 21+</span>
+                                    <span class="touch-action">Continue multi-thread sequence</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mid-Market BDR -->
+                    <div class="cadence-card">
+                        <div class="cadence-header mm">
+                            <h3>MID-MARKET</h3>
+                            <div class="sla-time">24-Hour SLA</div>
+                            <div style="font-size: 0.8rem; opacity: 0.9;">BDR-led, AE joins after meeting</div>
+                        </div>
+                        <div class="cadence-body">
+                            <div class="cadence-row">
+                                <span class="label">First Touch SLA</span>
+                                <span class="value">Within 24 hours</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Primary Owner</span>
+                                <span class="value">BDR (AE joins at meeting)</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Sequence Length</span>
+                                <span class="value">30 days</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Total Touches</span>
+                                <span class="value">12-15 touches</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Multi-threading</span>
+                                <span class="value">2-3 contacts</span>
+                            </div>
+
+                            <div class="touch-sequence">
+                                <h4>BDR Touch Sequence</h4>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 1</span>
+                                    <span class="touch-action">Email #1 - Personalized intro</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 1</span>
+                                    <span class="touch-action">Phone call attempt</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 2</span>
+                                    <span class="touch-action">LinkedIn connection</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 4</span>
+                                    <span class="touch-action">Phone call #2</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 5</span>
+                                    <span class="touch-action">Email #2 - Case study</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 8</span>
+                                    <span class="touch-action">Phone call #3</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 10</span>
+                                    <span class="touch-action">Email #3 - Value prop</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 14</span>
+                                    <span class="touch-action">Final push - breakup email</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SMB BDR -->
+                    <div class="cadence-card">
+                        <div class="cadence-header smb">
+                            <h3>SMB</h3>
+                            <div class="sla-time">24-Hour SLA</div>
+                            <div style="font-size: 0.8rem; opacity: 0.9;">BDR full cycle</div>
+                        </div>
+                        <div class="cadence-body">
+                            <div class="cadence-row">
+                                <span class="label">First Touch SLA</span>
+                                <span class="value">Within 24 hours</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Primary Owner</span>
+                                <span class="value">BDR (full cycle)</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Sequence Length</span>
+                                <span class="value">14 days</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Total Touches</span>
+                                <span class="value">8-10 touches</span>
+                            </div>
+                            <div class="cadence-row">
+                                <span class="label">Multi-threading</span>
+                                <span class="value">1-2 contacts</span>
+                            </div>
+
+                            <div class="touch-sequence">
+                                <h4>BDR Touch Sequence</h4>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 1</span>
+                                    <span class="touch-action">Email #1 - Quick value prop</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 1</span>
+                                    <span class="touch-action">Phone call attempt</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 2</span>
+                                    <span class="touch-action">Email #2 - Social proof</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 3</span>
+                                    <span class="touch-action">Phone call #2</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 5</span>
+                                    <span class="touch-action">Email #3 - Offer/CTA</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 7</span>
+                                    <span class="touch-action">Phone call #3 (final)</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 10</span>
+                                    <span class="touch-action">Breakup email</span>
+                                </div>
+                                <div class="touch-item">
+                                    <span class="touch-day">Day 14</span>
+                                    <span class="touch-action">→ Move to RL2 nurture</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Escalation Rules -->
+                <div class="escalation-box">
+                    <h4>⚠️ ESCALATION RULES</h4>
+                    <ul>
+                        <li><strong>Enterprise:</strong> No meeting booked by Day 14 → Escalate to VP Sales for exec intervention</li>
+                        <li><strong>Mid-Market:</strong> No meeting booked by Day 21 → Escalate to Sales Manager for review</li>
+                        <li><strong>SMB:</strong> No response by Day 14 → Auto-move to RL2 nurture (no escalation)</li>
+                        <li><strong>All:</strong> Negative response or "not now" → Tag reason, move to appropriate nurture track</li>
+                    </ul>
+                </div>
+
+                <!-- BDR SLA Summary Table -->
+                <div style="margin-top: 30px;">
+                    <table class="sla-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Enterprise</th>
+                                <th>Mid-Market</th>
+                                <th>SMB</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>First Touch SLA</strong></td>
+                                <td class="highlight">4 hours</td>
+                                <td class="highlight">24 hours</td>
+                                <td class="highlight">24 hours</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Sequence Duration</strong></td>
+                                <td>45 days</td>
+                                <td>30 days</td>
+                                <td>14 days</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Touches</strong></td>
+                                <td>18-22</td>
+                                <td>12-15</td>
+                                <td>8-10</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone Calls</strong></td>
+                                <td>6-8 calls</td>
+                                <td>4-5 calls</td>
+                                <td>3 calls</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Emails</strong></td>
+                                <td>8-10 emails</td>
+                                <td>5-6 emails</td>
+                                <td>4 emails</td>
+                            </tr>
+                            <tr>
+                                <td><strong>LinkedIn Touches</strong></td>
+                                <td>4-6 touches</td>
+                                <td>2-3 touches</td>
+                                <td>1-2 touches</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Contacts to Thread</strong></td>
+                                <td>3-5 contacts</td>
+                                <td>2-3 contacts</td>
+                                <td>1-2 contacts</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Escalation Trigger</strong></td>
+                                <td>Day 14 (no meeting)</td>
+                                <td>Day 21 (no meeting)</td>
+                                <td>Day 14 (auto-nurture)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ MQL TAB ============ -->
+        <div id="main-mql" class="main-content">
+            <div class="mql-section">
+                <div class="mql-header">
+                    <h2>Lead Scoring Model</h2>
+                    <p>Two-part scoring: Fit Score (account quality) + Engagement Score (behavioral activity)</p>
+                    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">
+                        <div class="mql-threshold" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">FIT <span>Account Quality</span></div>
+                        <div style="font-size: 2rem; color: #fff; display: flex; align-items: center;">+</div>
+                        <div class="mql-threshold">50 <span>Engagement = MQL</span></div>
+                    </div>
+                </div>
+
+                <!-- Fit Score Section -->
+                <div style="margin-bottom: 40px;">
+                    <div class="entry-title" style="color: #7B1FA2;">📊 FIT SCORE (Account + Contact Quality)</div>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 0.9rem;">Determines if account/contact is a good target — scored at account and contact level</p>
+
+                    <div class="scoring-grid">
+                        <!-- Firmographics -->
+                        <div class="scoring-card" style="border-color: #9C27B0;">
+                            <h4>🌍 Billing Country</h4>
+                            <div class="score-item">
+                                <span>USA</span>
+                                <span class="score-points" style="color: #9C27B0;">+15 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>English-Speaking Tier 1 (CAN, AUS, GBR, NZ, etc.)</span>
+                                <span class="score-points" style="color: #9C27B0;">+15 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Non-English (all others)</span>
+                                <span class="score-points" style="color: #f44336;">-10 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card" style="border-color: #9C27B0;">
+                            <h4>🏢 Vertical</h4>
+                            <div class="score-item">
+                                <span>Retail / eCommerce</span>
+                                <span class="score-points" style="color: #9C27B0;">+15 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Travel & Hospitality</span>
+                                <span class="score-points" style="color: #9C27B0;">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Any other vertical</span>
+                                <span class="score-points" style="color: #9C27B0;">+5 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Restricted (Gov, Gambling, Healthcare, etc.)</span>
+                                <span class="score-points" style="color: #f44336;">-30 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card" style="border-color: #9C27B0;">
+                            <h4>🎯 Account Signals</h4>
+                            <div class="score-item">
+                                <span><strong>On TAL (Target Account List)</strong></span>
+                                <span class="score-points" style="color: #9C27B0;">+50 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Marketplace = Yes</span>
+                                <span class="score-points" style="color: #9C27B0;">+5 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>SSOT Renewal Date Known</span>
+                                <span class="score-points" style="color: #9C27B0;">+30 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card" style="border-color: #9C27B0;">
+                            <h4>💻 CX Platform (Mid-Market)</h4>
+                            <div class="score-item">
+                                <span>Zendesk, Kustomer, Gorgias, Sprinklr, Oracle</span>
+                                <span class="score-points" style="color: #9C27B0;">+20 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Salesforce, Talkdesk, Intercom, Genesys, etc.</span>
+                                <span class="score-points" style="color: #9C27B0;">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Shopify Plus</span>
+                                <span class="score-points" style="color: #9C27B0;">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Other eCommerce platform</span>
+                                <span class="score-points" style="color: #9C27B0;">+7 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card" style="border-color: #9C27B0;">
+                            <h4>💻 CX Platform (Enterprise)</h4>
+                            <div class="score-item">
+                                <span>Salesforce, Talkdesk, Intercom, Genesys, etc.</span>
+                                <span class="score-points" style="color: #9C27B0;">+20 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Zendesk, Kustomer, Gorgias, Sprinklr, Oracle</span>
+                                <span class="score-points" style="color: #9C27B0;">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Shopify Plus</span>
+                                <span class="score-points" style="color: #9C27B0;">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Other / No eComm platform</span>
+                                <span class="score-points" style="color: #9C27B0;">+5-7 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card" style="border-color: #9C27B0;">
+                            <h4>👤 Contact Title (Qualifying)</h4>
+                            <div class="score-item">
+                                <span>Relevant title (CX, Operations, Tech, Marketing)</span>
+                                <span class="score-points" style="color: #9C27B0;">+5 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Sr+ Job Title</span>
+                                <span class="score-points" style="color: #9C27B0;">+5 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Irrelevant title (Support Rep, Warehouse, etc.)</span>
+                                <span class="score-points" style="color: #f44336;">-20 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Invalid Email Address</span>
+                                <span class="score-points" style="color: #f44336;">-20 pts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="program-note" style="background: #F3E5F5; margin-top: 20px;">
+                        <strong style="color: #7B1FA2;">📌 Fit Score Example:</strong> A Mid-Market Retail company in USA on the TAL with Zendesk and known renewal date:<br><br>
+                        USA (+15) + Retail (+15) + TAL (+50) + Zendesk (+20) + Renewal Known (+30) = <strong>130 pts Fit Score</strong><br><br>
+                        <strong>Account Status:</strong> Disqualified accounts → [RESET] - Do not score again
+                    </div>
+                </div>
+
+                <!-- Engagement Score Section -->
+                <div style="margin-bottom: 40px;">
+                    <div class="entry-title" style="color: #00838F;">⚡ ENGAGEMENT SCORE (Behavioral Activity) — 50 pts = MQL</div>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 0.9rem;">Measures contact interest based on actions — programs should drive contacts to 50+ points</p>
+
+                    <div class="scoring-grid">
+                        <div class="scoring-card">
+                            <h4>📧 Email Engagement</h4>
+                            <div class="score-item">
+                                <span>Email open</span>
+                                <span class="score-points">+5 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Email click</span>
+                                <span class="score-points">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Reply to email</span>
+                                <span class="score-points">+15 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card">
+                            <h4>📄 Content Engagement</h4>
+                            <div class="score-item">
+                                <span>Blog post view</span>
+                                <span class="score-points">+5 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Gated content download</span>
+                                <span class="score-points">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Case study download</span>
+                                <span class="score-points">+15 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card">
+                            <h4>🎯 Website Behavior</h4>
+                            <div class="score-item">
+                                <span>Website visit</span>
+                                <span class="score-points">+5 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Multiple pages (3+)</span>
+                                <span class="score-points">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Pricing page visit</span>
+                                <span class="score-points">+20 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Demo page visit</span>
+                                <span class="score-points">+25 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card">
+                            <h4>🎪 Events & Webinars</h4>
+                            <div class="score-item">
+                                <span>Webinar registration</span>
+                                <span class="score-points">+10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Webinar attendance</span>
+                                <span class="score-points">+15 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>In-person event attendance</span>
+                                <span class="score-points">+25 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card">
+                            <h4>🖱️ High-Intent Actions</h4>
+                            <div class="score-item">
+                                <span>Demo request form</span>
+                                <span class="score-points">+50 pts (auto-MQL)</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Contact sales form</span>
+                                <span class="score-points">+50 pts (auto-MQL)</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Responded to BDR</span>
+                                <span class="score-points">+30 pts</span>
+                            </div>
+                        </div>
+
+                        <div class="scoring-card">
+                            <h4>📉 Score Decay</h4>
+                            <div class="score-item">
+                                <span>30 days no activity</span>
+                                <span class="score-points" style="color: #f44336;">-10 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>60 days no activity</span>
+                                <span class="score-points" style="color: #f44336;">-20 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>90 days no activity</span>
+                                <span class="score-points" style="color: #f44336;">-30 pts</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Email unsubscribe</span>
+                                <span class="score-points" style="color: #f44336;">-50 pts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="program-note">
+                        <strong>📌 Program Design Note:</strong> All nurture programs should be designed to accumulate 50+ engagement points. Example path to MQL:<br><br>
+                        • Email open (+5) + Click (+10) = 15 pts<br>
+                        • Content download (+10) = 25 pts<br>
+                        • Webinar registration (+10) + Attendance (+15) = 50 pts ✓ MQL<br><br>
+                        <strong>Or faster path:</strong> Pricing page visit (+20) + Content download (+10) + Email click (+10) + Webinar attend (+15) = 55 pts ✓ MQL
+                    </div>
+                </div>
+
+                <!-- How Scores Work Together -->
+                <div style="margin-bottom: 40px;">
+                    <div class="entry-title no-icon">🔗 HOW FIT + ENGAGEMENT SCORES WORK TOGETHER</div>
+                    <div class="trigger-grid">
+                        <div class="trigger-card" style="border-color: #9C27B0;">
+                            <h4>High Fit + High Engagement</h4>
+                            <ul>
+                                <li>Fit Score: 100+ pts (ideal account)</li>
+                                <li>Engagement: 50+ pts (MQL reached)</li>
+                                <li><strong>→ Immediate RL1 + Priority BDR outreach</strong></li>
+                                <li>Fast-track to sales handoff</li>
+                            </ul>
+                        </div>
+                        <div class="trigger-card" style="border-color: #FF9800;">
+                            <h4>High Fit + Low Engagement</h4>
+                            <ul>
+                                <li>Fit Score: 100+ pts (ideal account)</li>
+                                <li>Engagement: &lt;50 pts (not yet MQL)</li>
+                                <li><strong>→ RL2/RL3 aggressive nurture</strong></li>
+                                <li>Priority for ad spend, content syndication</li>
+                            </ul>
+                        </div>
+                        <div class="trigger-card" style="border-color: #2196F3;">
+                            <h4>Medium Fit + High Engagement</h4>
+                            <ul>
+                                <li>Fit Score: 50-99 pts (decent account)</li>
+                                <li>Engagement: 50+ pts (MQL reached)</li>
+                                <li><strong>→ MQL but BDR qualification needed</strong></li>
+                                <li>Validate fit before AE involvement</li>
+                            </ul>
+                        </div>
+                        <div class="trigger-card" style="border-color: #9E9E9E;">
+                            <h4>Low Fit + Any Engagement</h4>
+                            <ul>
+                                <li>Fit Score: &lt;50 pts (poor fit)</li>
+                                <li>Engagement: Any</li>
+                                <li><strong>→ Do not pursue</strong></li>
+                                <li>Low-touch nurture only, no BDR time</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MQL Integration with RL -->
+                <div style="margin-top: 30px;">
+                    <div class="entry-title no-icon">MQL + READINESS LEVEL INTEGRATION</div>
+                    <div class="trigger-grid">
+                        <div class="trigger-card mql">
+                            <h4>MQL as RL2 → RL1 Trigger</h4>
+                            <ul>
+                                <li>Contact reaches 50+ engagement points</li>
+                                <li>Account has sufficient Fit Score (50+)</li>
+                                <li>Automatically moves account to RL1</li>
+                                <li>BDR SLA clock starts immediately</li>
+                            </ul>
+                        </div>
+                        <div class="trigger-card mql">
+                            <h4>MQL in RL1 Account</h4>
+                            <ul>
+                                <li>Additional contact reaches MQL</li>
+                                <li>BDR notified of new champion</li>
+                                <li>Multi-threading opportunity flagged</li>
+                                <li>Prioritize for outreach</li>
+                            </ul>
+                        </div>
+                        <div class="trigger-card mql">
+                            <h4>MQL Score Reset</h4>
+                            <ul>
+                                <li>Closed-won: Reset after 6 months</li>
+                                <li>Closed-lost: Reset after 90 days</li>
+                                <li>Decay brings below 25: Move to RL3</li>
+                                <li>Unsubscribe: Remove from scoring</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMainTab(tab) {
+            document.querySelectorAll('.main-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.main-tab').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('main-' + tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showFlow(rl) {
+            document.querySelectorAll('.flow-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.rl-tab').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('flow-' + rl).classList.add('active');
+            document.querySelector('.rl-tab.' + rl).classList.add('active');
+        }
+    </script>
+</body>
+</html>
